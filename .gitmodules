@@ -1,0 +1,6 @@
+[submodule "tasti-front"]
+	path = tasti-front
+	url = https://github.com/yanklio/tasti_front
+[submodule "tasti-back"]
+	path = tasti-back
+	url = https://github.com/yanklio/tasti_back
