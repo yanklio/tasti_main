@@ -4,3 +4,6 @@
 [submodule "tasti-back"]
 	path = tasti-back
 	url = https://github.com/yanklio/tasti_back
+[submodule "tasti_infra"]
+	path = tasti_infra
+	url = https://github.com/yanklio/tasti_infra
