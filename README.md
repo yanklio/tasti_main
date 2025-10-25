@@ -31,54 +31,19 @@ tasti_main/
 
 ### Backend ([tasti-back](./tasti-back))
 
-- **Framework**: Django 5.2.5 with Django REST Framework
-- **Database**: PostgreSQL 17
-- **Authentication**: JWT tokens via django-rest-framework-simplejwt
-- **Storage**: AWS S3 with presigned URLs
-- **API Documentation**: OpenAPI/Swagger via drf-spectacular
-
-**Key Features:**
-
-- RESTful API with `/api/v1/` endpoints
-- Health check endpoint
-- Recipe CRUD operations with pagination
-- Image upload with S3 integration
-- User registration and authentication
+Django REST API backend with PostgreSQL database, JWT authentication, and S3 image storage.
 
 📖 [Backend Documentation](./tasti-back/docs/README.md)
 
 ### Frontend ([tasti-front](./tasti-front))
 
-- **Framework**: Angular 20.2.2
-- **UI Library**: Angular Material Design
-- **State Management**: Signals-based reactive state
-- **Styling**: Custom CSS with Material theming
-
-**Key Features:**
-
-- Responsive recipe browsing and management
-- Image upload with drag-and-drop support
-- User authentication with route guards
-- Light/dark/system theme support
-- Recipe search and filtering
+Angular application with Material Design UI and responsive recipe management interface.
 
 📖 [Frontend Documentation](./tasti-front/README.md)
 
 ### Infrastructure ([tasti_infra](./tasti_infra))
 
-- **IaC Tool**: Terraform (AWS Provider ~> 6.16)
-- **Cloud Provider**: AWS
-- **Architecture**: Serverless with ECS Fargate
-
-**AWS Resources:**
-
-- **Compute**: ECS Fargate for backend containers
-- **Storage**: S3 buckets for recipes and frontend assets
-- **Database**: RDS PostgreSQL
-- **CDN**: CloudFront distribution for frontend
-- **Load Balancing**: Application Load Balancer with HTTPS
-- **DNS**: Route 53 for domain management
-- **Security**: Secrets Manager for credentials, IAM roles
+Terraform-managed AWS infrastructure with ECS Fargate, RDS PostgreSQL, S3 storage, and CloudFront CDN.
 
 📖 [Infrastructure Documentation](./tasti_infra/README.md)
 
@@ -92,233 +57,49 @@ tasti_main/
 - **Terraform** 1.2+ (for infrastructure deployment)
 - **AWS CLI** configured with appropriate credentials
 
-### Local Development
-
-#### Option 1: Docker Compose (Recommended)
-
-1. **Clone the repository:**
-
-   ```bash
-   git clone <repository-url>
-   cd tasti_main
-   ```
-
-2. **Start all services:**
-
-   ```bash
-   cd docker-support
-   docker-compose up
-   ```
-
-   This starts:
-
-   - Backend API at `http://localhost:8000`
-   - Frontend at `http://localhost:4200`
-   - PostgreSQL database
-   - Localstack for S3 emulation
-
-#### Option 2: Individual Services
-
-**Backend:**
+### Quick Start with Docker Compose
 
 ```bash
-cd tasti-back
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r src/requirements.txt
-cd src
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
+git clone <repository-url>
+cd tasti_main/docker-support
+docker-compose up
 ```
 
-**Frontend:**
+Services will be available at:
 
-```bash
-cd tasti-front
-npm install
-ng serve
-```
+- Backend API: `http://localhost:8000`
+- Frontend: `http://localhost:4200`
+- API Documentation: `http://localhost:8000/api/schema/swagger-ui/`
 
-### Environment Configuration
+For detailed setup instructions, see the individual project documentation:
 
-#### Backend (.env)
-
-Create `tasti-back/src/.env`:
-
-```env
-DEBUG=True
-SECRET_KEY=your-secret-key
-DB_NAME=tastidb
-DB_USER=postgres
-DB_PASSWORD=your-password
-DB_HOST=localhost
-DB_PORT=5432
-
-# S3 Configuration (use Localstack for development)
-AWS_ACCESS_KEY_ID=test
-AWS_SECRET_ACCESS_KEY=test
-AWS_STORAGE_BUCKET_NAME=tasti-recipes-local
-AWS_S3_ENDPOINT_URL=http://localhost:4566
-AWS_S3_VERIFY=False
-
-# CORS
-CORS_ALLOWED_ORIGINS=http://localhost:4200
-```
-
-#### Frontend (environment.ts)
-
-The development environment is already configured in `tasti-front/src/environments/environment.development.ts`:
-
-```typescript
-export const environment = {
-  apiUrl: "http://localhost:8000/api/v1/",
-};
-```
+- [Backend Setup](./tasti-back/docs/README.md)
+- [Frontend Setup](./tasti-front/README.md)
+- [Infrastructure Deployment](./tasti_infra/README.md)
 
 ## Deployment
 
-### AWS Deployment with Terraform
+See the [Infrastructure Documentation](./tasti_infra/README.md) for complete AWS deployment instructions using Terraform.
 
-1. **Configure AWS credentials:**
+## Contributing
 
-   ```bash
-   aws configure
-   ```
-
-2. **Initialize Terraform:**
-
-   ```bash
-   cd tasti_infra
-   terraform init
-   ```
-
-3. **Review and apply infrastructure:**
-
-   ```bash
-   terraform plan
-   terraform apply
-   ```
-
-4. **Deploy backend Docker image:**
-
-   ```bash
-   # Build and push to ECR
-   cd ../tasti-back
-   aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin <ecr-url>
-   docker build -f docker/Dockerfile -t tasti-backend .
-   docker tag tasti-backend:latest <ecr-url>:latest
-   docker push <ecr-url>:latest
-   ```
-
-5. **Deploy frontend to S3:**
-
-   ```bash
-   cd ../tasti-front
-   ng build --configuration production
-   aws s3 sync dist/ s3://tasti-frontend-bucket/
-   ```
-
-### Deployment Outputs
-
-After deployment, Terraform provides:
-
-- **Frontend URL**: CloudFront distribution URL (or custom domain)
-- **Backend API URL**: ALB DNS name or `api.<domain>`
-- **Database Endpoint**: RDS connection string
-- **S3 Bucket Names**: For recipes and frontend assets
-
-## API Documentation
-
-The backend API is documented using OpenAPI/Swagger:
-
-- **Development**: `http://localhost:8000/api/schema/swagger-ui/`
-- **Production**: `https://api.<your-domain>/api/schema/swagger-ui/`
-
-### Key Endpoints
-
-- **Health Check**: `GET /api/v1/health/`
-- **Authentication**: `POST /api/v1/auth/login/`, `POST /api/v1/auth/register/`
-- **Recipes**: `GET|POST /api/v1/recipes/`, `GET|PUT|DELETE /api/v1/recipes/{id}/`
-- **Image Upload**: Uses presigned S3 URLs for direct upload
-
-📖 [Full API Documentation](./tasti-back/docs/README.md)
-
-## Testing
-
-### Backend Tests
-
-```bash
-cd tasti-back/src
-python manage.py test
-```
-
-### Frontend Tests
-
-```bash
-cd tasti-front
-npm test
-```
-
-## Database Management
-
-### Migrations
-
-```bash
-cd tasti-back/src
-python manage.py migrate
-```
-
-### Seeding Sample Data
-
-```bash
-python manage.py seed_db
-```
-
-## Security Features
-
-- 🔒 JWT-based authentication with token rotation
-- 🛡️ CORS configuration for cross-origin requests
-- 🔐 Secrets Manager for sensitive configuration
-- 🌐 HTTPS-only in production with SSL certificates
-- 🚫 Private S3 buckets with presigned URL access
-- 👮 IAM roles with least-privilege access
-
-## Infrastructure Configuration
-
-### Domain Setup
-
-To use a custom domain, configure in `tasti_infra/variables.tf`:
-
-```hcl
-variable "domain_name" {
-  description = "Domain name for Route 53 and SSL certificate"
-  type        = string
-  default     = "your-domain.com"
-}
-```
-
-### Private Access Mode
-
-Enable private access to restrict backend to only CloudFront:
-
-```hcl
-variable "enable_private_access" {
-  description = "Enable private access mode"
-  type        = bool
-  default     = true
-}
-```
-
-## Monitoring and Logs
-
-- **Backend Logs**: CloudWatch Logs for ECS tasks
-- **Database Metrics**: RDS CloudWatch metrics
-- **CDN Metrics**: CloudFront access logs
-- **Application Health**: `/api/v1/health/` endpoint
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
 This project is licensed under the MIT License.
+
+## Support
+
+For issues and questions:
+
+- � Issues: [GitHub Issues](https://github.com/yanklio/tasti_main/issues)
+- 📖 Documentation: See individual project READMEs
+
+---
 
 Built with ❤️ using Django, Angular, and AWS
